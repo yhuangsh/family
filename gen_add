@@ -1,0 +1,71 @@
+#!/usr/local/bin/escript
+
+%% Space between columns
+-define(COLSPC, 4).
+
+main([]) -> main(["100"]);
+main([MaxOp]) -> main([MaxOp, "100", "5"]);
+main([MaxOp, QuestionCount]) -> main([MaxOp, QuestionCount, "5"]);
+main([MaxOp, QuestionCount, PrintColumns]) ->
+    MaxOp1 = list_to_integer(MaxOp),
+    QuestionCount1 = list_to_integer(QuestionCount),
+    PrintColumns1 = list_to_integer(PrintColumns),
+    PrintWidth = length(MaxOp)+1,		% compensate for when N1 and N2 are both MaxOp, thus their sum is one character wider
+
+    Equs = gen_math(MaxOp1, QuestionCount1),
+    print_math(Equs, PrintColumns1, PrintWidth).
+
+gen_math(M, QC) -> gen_math(M, [], QC).
+gen_math(_, EQList, 0) -> EQList;
+gen_math(M, EQList, QC) ->
+    N1x = rand:uniform(M),
+    N2x = rand:uniform(M),
+    Op = op(rand:uniform(2) - 1),
+    EQx = adjust_compute(N1x, Op, N2x),
+    EQ = hide(EQx),
+    gen_math(M, [EQ | EQList], QC - 1).
+
+op(0) -> "+";
+op(1) -> "-".
+
+adjust_compute(N1, "-", N2) when N1 < N2 -> {N2, "-", N1, N2 - N1};
+adjust_compute(N1, "-", N2) when N1 >= N2 -> {N1, "+", N2, N1 - N2}; 
+adjust_compute(N1, "+", N2) -> {N1, "+", N2, N1 + N2}. 
+    
+hide(EQ) -> hide(EQ, rand:uniform(3)).
+hide({_, Op, N2, N3}, 1) -> {none, Op, N2, N3};
+hide({N1, Op, _, N3}, 2) -> {N1, Op, none, N3}; 
+hide({N1, Op, N2, _}, 3) -> {N1, Op, N2, none}.
+ 
+print_math([], _, _) -> ok;
+print_math(EquList, PrintColumns, PrintWidth) ->
+    NewEquList = print_row(EquList, PrintColumns, PrintWidth),
+    print_ln(),
+    print_ln(),
+    print_math(NewEquList, PrintColumns, PrintWidth).
+ 
+print_row([], _, _) -> [];
+print_row(T, 0, _) -> T;
+print_row([H | T], PrintColumns, PrintWidth) ->
+    print_one(H, PrintWidth),
+    print_space(),
+    print_row(T, PrintColumns - 1, PrintWidth).
+
+print_one({N1, Op, N2, N3}, PrintWidth) ->
+    N1s = mkstr(N1, PrintWidth),
+    N2s = mkstr(N2, PrintWidth),
+    N3s = mkstr(N3, PrintWidth), 
+    io:format(lists:flatten([N1s, " ", Op, " ", N2s, " = ", N3s])).
+
+print_space() -> io:format(lists:duplicate(?COLSPC, " ")).
+
+print_ln() -> io:format("~n").
+
+mkstr(none, W) -> ["(", lists:duplicate(W, " "), ")"];
+mkstr(N, W) when is_number(N) -> io_lib:format(format(W), [N]).
+
+format(W) -> lists:flatten(io_lib:format(" ~~~ww ", [W])). 
+
+
+    
+    
