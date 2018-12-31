@@ -1,5 +1,6 @@
 #!/usr/local/bin/escript
 
+%% Program to generate plus/minus questions
 %% Space between columns
 -define(COLSPC, 4).
 
@@ -29,7 +30,7 @@ op(0) -> "+";
 op(1) -> "-".
 
 adjust_compute(N1, "-", N2) when N1 < N2 -> {N2, "-", N1, N2 - N1};
-adjust_compute(N1, "-", N2) when N1 >= N2 -> {N1, "+", N2, N1 - N2}; 
+adjust_compute(N1, "-", N2) when N1 >= N2 -> {N1, "-", N2, N1 - N2}; 
 adjust_compute(N1, "+", N2) -> {N1, "+", N2, N1 + N2}. 
     
 hide(EQ) -> hide(EQ, rand:uniform(3)).
